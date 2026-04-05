@@ -1,27 +1,26 @@
-from flask import Flask, render_template, request, redirect
-from database import init_db, insert_feedback, get_all_feedback
+from flask import Flask, render_template, request, redirect, url_for
 
-# 👇 FIX TEMPLATE PATH HERE
-app = Flask(__name__, template_folder="../templates", static_folder="../static")
+app = Flask(__name__)
 
-db_path = 'feedback.db'
 
-def setup_db():
-    init_db(db_path)
+feedbacks = []
 
-@app.route('/', methods=['GET'])
-def index():
-    feedbacks = get_all_feedback(db_path)
-    return render_template('index.html', feedbacks=feedbacks)
+# Home route (IMPORTANT for fixing "Not Found")
+@app.route("/")
+def home():
+    return render_template("index.html", feedbacks=feedbacks)
 
-@app.route('/submit', methods=['POST'])
+# Handle form submission
+@app.route("/submit", methods=["POST"])
 def submit():
-    name = request.form.get('name')
-    feedback = request.form.get('feedback')
-    if name and feedback:
-        insert_feedback(db_path, name, feedback)
-    return redirect('/')
+    name = request.form.get("name")
+    feedback = request.form.get("feedback")
 
-if __name__ == '__main__':
-    setup_db()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    if name and feedback:
+        feedbacks.append((name, feedback))
+
+    return redirect(url_for("home"))  # Redirect to home after submit
+
+# Run app (for local + Render compatibility)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
